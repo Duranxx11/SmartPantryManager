@@ -1,5 +1,6 @@
 package com.durangoindsamy.smartpantrymanager.data;
-
+import com.durangoindsamy.smartpantrymanager.model.Recipe;
+import com.durangoindsamy.smartpantrymanager.model.RecipeIngredient;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -167,5 +168,80 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         int expiryIdx = c.getColumnIndexOrThrow(COL_EXPIRY);
         item.setExpiryDate(c.isNull(expiryIdx) ? null : c.getLong(expiryIdx));
         return item;
+    }
+    // ===================== RECIPES =====================
+
+    /**
+     * Inserts a recipe and all its ingredients.
+     * Takes the db as a parameter because it is called from onCreate(),
+     * where calling getWritableDatabase() again would cause a recursive error.
+     */
+    static void insertRecipe(SQLiteDatabase db, Recipe recipe) {
+        ContentValues rv = new ContentValues();
+        rv.put(COL_NAME, recipe.getName());
+        rv.put(COL_STEPS, recipe.getSteps());
+        long recipeId = db.insert(TABLE_RECIPES, null, rv);
+        recipe.setId(recipeId);
+
+        for (RecipeIngredient ing : recipe.getIngredients()) {
+            ContentValues iv = new ContentValues();
+            iv.put(COL_RECIPE_ID, recipeId);
+            iv.put(COL_NAME, ing.getName());
+            iv.put(COL_NORMALIZED, IngredientNormalizer.normalize(ing.getName()));
+            iv.put(COL_QUANTITY, ing.getQuantity());
+            iv.put(COL_UNIT, ing.getUnit());
+            ing.setId(db.insert(TABLE_RECIPE_INGREDIENTS, null, iv));
+            ing.setRecipeId(recipeId);
+        }
+    }
+
+    /** READ (all) - every recipe with its ingredients attached. */
+    public List<Recipe> getAllRecipes() {
+        List<Recipe> recipes = new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+        try (Cursor c = db.query(TABLE_RECIPES, null, null, null,
+                null, null, COL_NAME + " COLLATE NOCASE ASC")) {
+            while (c.moveToNext()) {
+                recipes.add(recipeFromCursor(db, c));
+            }
+        }
+        return recipes;
+    }
+
+    /** READ (one) - used by the Recipe Detail screen. */
+    public Recipe getRecipe(long id) {
+        SQLiteDatabase db = getReadableDatabase();
+        try (Cursor c = db.query(TABLE_RECIPES, null,
+                COL_ID + " = ?", new String[]{String.valueOf(id)},
+                null, null, null)) {
+            return c.moveToFirst() ? recipeFromCursor(db, c) : null;
+        }
+    }
+
+    private Recipe recipeFromCursor(SQLiteDatabase db, Cursor c) {
+        Recipe r = new Recipe();
+        r.setId(c.getLong(c.getColumnIndexOrThrow(COL_ID)));
+        r.setName(c.getString(c.getColumnIndexOrThrow(COL_NAME)));
+        r.setSteps(c.getString(c.getColumnIndexOrThrow(COL_STEPS)));
+        r.setIngredients(getIngredientsForRecipe(db, r.getId()));
+        return r;
+    }
+
+    private List<RecipeIngredient> getIngredientsForRecipe(SQLiteDatabase db, long recipeId) {
+        List<RecipeIngredient> list = new ArrayList<>();
+        try (Cursor c = db.query(TABLE_RECIPE_INGREDIENTS, null,
+                COL_RECIPE_ID + " = ?", new String[]{String.valueOf(recipeId)},
+                null, null, null)) {
+            while (c.moveToNext()) {
+                RecipeIngredient ing = new RecipeIngredient();
+                ing.setId(c.getLong(c.getColumnIndexOrThrow(COL_ID)));
+                ing.setRecipeId(recipeId);
+                ing.setName(c.getString(c.getColumnIndexOrThrow(COL_NAME)));
+                ing.setQuantity(c.getDouble(c.getColumnIndexOrThrow(COL_QUANTITY)));
+                ing.setUnit(c.getString(c.getColumnIndexOrThrow(COL_UNIT)));
+                list.add(ing);
+            }
+        }
+        return list;
     }
 }
