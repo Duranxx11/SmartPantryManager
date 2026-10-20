@@ -1,5 +1,6 @@
 package com.durangoindsamy.smartpantrymanager.adapter;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,17 +14,13 @@ import com.durangoindsamy.smartpantrymanager.model.PantryItem;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-/**
- * Connects the list of PantryItems to the RecyclerView.
- * The RecyclerView only creates enough row views to fill the screen and
- * re-uses them as you scroll - onBindViewHolder fills a re-used row with new data.
- */
-public class PantryAdapter extends RecyclerView.Adapter<PantryAdapter.PantryViewHolder> {
+public class PantryAdapter
+        extends RecyclerView.Adapter<PantryAdapter.PantryViewHolder> {
 
-    /** Lets the Activity decide what happens when a row is tapped. */
     public interface OnItemClickListener {
         void onItemClick(PantryItem item);
     }
@@ -35,7 +32,6 @@ public class PantryAdapter extends RecyclerView.Adapter<PantryAdapter.PantryView
         this.listener = listener;
     }
 
-    /** Replaces the displayed data, e.g. after the database changes. */
     public void setItems(List<PantryItem> newItems) {
         items.clear();
         items.addAll(newItems);
@@ -44,15 +40,19 @@ public class PantryAdapter extends RecyclerView.Adapter<PantryAdapter.PantryView
 
     @NonNull
     @Override
-    public PantryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Inflate (build) one row view from item_pantry.xml
+    public PantryViewHolder onCreateViewHolder(
+            @NonNull ViewGroup parent, int viewType) {
+
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_pantry, parent, false);
+
         return new PantryViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull PantryViewHolder holder, int position) {
+    public void onBindViewHolder(
+            @NonNull PantryViewHolder holder, int position) {
+
         holder.bind(items.get(position), listener);
     }
 
@@ -61,38 +61,113 @@ public class PantryAdapter extends RecyclerView.Adapter<PantryAdapter.PantryView
         return items.size();
     }
 
-    /** Holds references to one row's views so findViewById runs only once per row. */
     static class PantryViewHolder extends RecyclerView.ViewHolder {
 
         private final TextView textName;
         private final TextView textQuantity;
         private final TextView textExpiry;
+        private final int defaultExpiryColor;
 
         PantryViewHolder(@NonNull View itemView) {
             super(itemView);
+
             textName = itemView.findViewById(R.id.textName);
             textQuantity = itemView.findViewById(R.id.textQuantity);
             textExpiry = itemView.findViewById(R.id.textExpiry);
+
+            defaultExpiryColor = textExpiry.getCurrentTextColor();
         }
 
         void bind(PantryItem item, OnItemClickListener listener) {
-            textName.setText(item.getName());
-            textQuantity.setText(itemView.getContext().getString(
-                    R.string.quantity_format, formatQuantity(item.getQuantity()), item.getUnit()));
 
-            if (item.getExpiryDate() != null) {
-                String date = DateFormat.getDateInstance().format(new Date(item.getExpiryDate()));
-                textExpiry.setText(itemView.getContext().getString(R.string.expires_on, date));
-            } else {
+            textName.setText(item.getName());
+
+            textQuantity.setText(
+                    itemView.getContext().getString(
+                            R.string.quantity_format,
+                            formatQuantity(item.getQuantity()),
+                            item.getUnit()
+                    )
+            );
+
+            Long expiryDate = item.getExpiryDate();
+
+            if (expiryDate == null) {
                 textExpiry.setText(R.string.no_expiry);
+                textExpiry.setTextColor(defaultExpiryColor);
+
+            } else {
+                Date expiry = new Date(expiryDate);
+
+                String formattedDate = DateFormat
+                        .getDateInstance()
+                        .format(expiry);
+
+                Calendar today = Calendar.getInstance();
+                setToStartOfDay(today);
+
+                Calendar expiryDay = Calendar.getInstance();
+                expiryDay.setTime(expiry);
+                setToStartOfDay(expiryDay);
+
+                long difference = expiryDay.getTimeInMillis()
+                        - today.getTimeInMillis();
+
+                long daysLeft = Math.round(
+                        difference / 86400000.0
+                );
+
+                if (daysLeft < 0) {
+                    textExpiry.setText(
+                            "EXPIRED - " + formattedDate
+                    );
+                    textExpiry.setTextColor(Color.RED);
+
+                } else if (daysLeft == 0) {
+                    textExpiry.setText(
+                            "EXPIRES TODAY - " + formattedDate
+                    );
+                    textExpiry.setTextColor(
+                            Color.rgb(220, 100, 0)
+                    );
+
+                } else if (daysLeft <= 3) {
+                    String message = daysLeft == 1
+                            ? "Expires in 1 day - "
+                            : "Expires in " + daysLeft + " days - ";
+
+                    textExpiry.setText(message + formattedDate);
+                    textExpiry.setTextColor(
+                            Color.rgb(183, 121, 31)
+                    );
+
+                } else {
+                    textExpiry.setText(
+                            itemView.getContext().getString(
+                                    R.string.expires_on,
+                                    formattedDate
+                            )
+                    );
+                    textExpiry.setTextColor(defaultExpiryColor);
+                }
             }
 
-            itemView.setOnClickListener(v -> listener.onItemClick(item));
+            itemView.setOnClickListener(
+                    v -> listener.onItemClick(item)
+            );
         }
 
-        /** Shows 3 instead of 3.0, but keeps 0.5 as 0.5. */
-        private static String formatQuantity(double q) {
-            return q == Math.floor(q) ? String.valueOf((long) q) : String.valueOf(q);
+        private static void setToStartOfDay(Calendar calendar) {
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
+            calendar.set(Calendar.MINUTE, 0);
+            calendar.set(Calendar.SECOND, 0);
+            calendar.set(Calendar.MILLISECOND, 0);
+        }
+
+        private static String formatQuantity(double quantity) {
+            return quantity == Math.floor(quantity)
+                    ? String.valueOf((long) quantity)
+                    : String.valueOf(quantity);
         }
     }
 }
