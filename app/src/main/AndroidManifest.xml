@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartPantryManager">
         <activity
+            android:name=".AddEditPantryActivity"
+            android:exported="false" />
+        <activity
             android:name=".PantryListActivity"
             android:exported="true">
             <intent-filter>

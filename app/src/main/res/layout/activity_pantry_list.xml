@@ -17,6 +17,25 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Search bar -->
+    <EditText
+        android:id="@+id/etSearchPantry"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="16dp"
+        android:hint="Search ingredients..."
+        android:inputType="text"
+        android:singleLine="true"
+        android:padding="12dp"
+        android:background="@android:drawable/edit_text"
+        android:importantForAutofill="no"
+        android:contentDescription="Search pantry ingredients"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerPantry"
         android:layout_width="0dp"
@@ -24,12 +43,12 @@
         android:padding="8dp"
         android:clipToPadding="false"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintTop_toBottomOf="@id/etSearchPantry"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Shown instead of the list when the pantry has no items -->
+    <!-- Empty-state message -->
     <TextView
         android:id="@+id/textEmpty"
         android:layout_width="wrap_content"
@@ -39,7 +58,7 @@
         android:text="@string/pantry_empty"
         android:textSize="16sp"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintTop_toBottomOf="@id/etSearchPantry"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
