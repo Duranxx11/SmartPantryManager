@@ -1,6 +1,5 @@
 package com.durangoindsamy.smartpantrymanager.data;
-import com.durangoindsamy.smartpantrymanager.model.Recipe;
-import com.durangoindsamy.smartpantrymanager.model.RecipeIngredient;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -8,6 +7,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.durangoindsamy.smartpantrymanager.model.PantryItem;
+import com.durangoindsamy.smartpantrymanager.model.Recipe;
+import com.durangoindsamy.smartpantrymanager.model.RecipeIngredient;
 import com.durangoindsamy.smartpantrymanager.util.IngredientNormalizer;
 
 import java.util.ArrayList;
@@ -15,12 +16,13 @@ import java.util.List;
 
 /**
  * Creates and manages the local SQLite database.
- * Android calls onCreate() the first time the database is opened on a device.
+ * Android calls onCreate() the first time the database is opened on a device,
+ * and onUpgrade() whenever DATABASE_VERSION is increased.
  */
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "smart_pantry.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;   // v2: recipes are seeded in onCreate
 
     // ---- Shared column names ----
     public static final String COL_ID = "id";
@@ -87,6 +89,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + COL_UNIT + " TEXT NOT NULL, "
                 + "FOREIGN KEY (" + COL_RECIPE_ID + ") REFERENCES "
                 + TABLE_RECIPES + "(" + COL_ID + ") ON DELETE CASCADE)");
+
+        // Pre-load the recipe collection on first run
+        RecipeSeeder.seed(db);
     }
 
     @Override
@@ -141,7 +146,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COL_ID + " = ?", new String[]{String.valueOf(id)});
     }
 
-    // ---- helpers: object <-> row ----
+    // ---- pantry helpers: object <-> row ----
 
     /** Converts a PantryItem into column/value pairs for insert/update. */
     private ContentValues toContentValues(PantryItem item) {
@@ -169,6 +174,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         item.setExpiryDate(c.isNull(expiryIdx) ? null : c.getLong(expiryIdx));
         return item;
     }
+
     // ===================== RECIPES =====================
 
     /**
@@ -208,7 +214,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return recipes;
     }
 
-    /** READ (one) - used by the Recipe Detail screen. */
+    /** READ (one) - used by the Recipe Detail screen. Returns null if not found. */
     public Recipe getRecipe(long id) {
         SQLiteDatabase db = getReadableDatabase();
         try (Cursor c = db.query(TABLE_RECIPES, null,
@@ -217,6 +223,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             return c.moveToFirst() ? recipeFromCursor(db, c) : null;
         }
     }
+
+    // ---- recipe helpers: row -> object ----
 
     private Recipe recipeFromCursor(SQLiteDatabase db, Cursor c) {
         Recipe r = new Recipe();
