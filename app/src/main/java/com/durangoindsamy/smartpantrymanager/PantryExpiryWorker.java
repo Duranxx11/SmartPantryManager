@@ -3,7 +3,9 @@ package com.durangoindsamy.smartpantrymanager;
 import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -24,8 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 public class PantryExpiryWorker extends Worker {
 
-    private static final String CHANNEL_ID =
-            "pantry_expiry_channel";
+    private static final String CHANNEL_ID = "pantry_expiry_channel";
 
     public PantryExpiryWorker(
             @NonNull Context context,
@@ -38,7 +39,6 @@ public class PantryExpiryWorker extends Worker {
     public Result doWork() {
         Context context = getApplicationContext();
 
-        // Read the saved expiry-alert setting.
         SharedPreferences preferences = context.getSharedPreferences(
                 SettingsActivity.PREFS_NAME,
                 Context.MODE_PRIVATE
@@ -49,12 +49,10 @@ public class PantryExpiryWorker extends Worker {
                 true
         );
 
-        // Stop this check when expiry alerts are disabled.
         if (!alertsEnabled) {
             return Result.success();
         }
 
-        // Check notification permission on Android 13 and newer.
         if (Build.VERSION.SDK_INT >= 33
                 && ContextCompat.checkSelfPermission(
                 context,
@@ -70,8 +68,6 @@ public class PantryExpiryWorker extends Worker {
 
         Calendar today = Calendar.getInstance();
         setStartOfDay(today);
-
-        int notificationId = 1000;
 
         for (PantryItem item : items) {
             Long expiryDate = item.getExpiryDate();
@@ -101,6 +97,45 @@ public class PantryExpiryWorker extends Worker {
             }
 
             if (message != null) {
+                // Open the pantry list with this specific ingredient selected.
+                Intent intent = new Intent(
+                        context,
+                        PantryListActivity.class
+                );
+
+                intent.putExtra(
+                        PantryListActivity.EXTRA_EXPIRY_ITEM_ID,
+                        item.getId()
+                );
+
+                intent.putExtra(
+                        PantryListActivity.EXTRA_EXPIRY_ITEM_NAME,
+                        item.getName()
+                );
+
+                intent.setAction(
+                        "com.durangoindsamy.smartpantrymanager.EXPIRY_"
+                                + item.getId()
+                );
+
+                intent.addFlags(
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP
+                                | Intent.FLAG_ACTIVITY_SINGLE_TOP
+                );
+
+                int pendingIntentFlags = PendingIntent.FLAG_UPDATE_CURRENT;
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    pendingIntentFlags |= PendingIntent.FLAG_IMMUTABLE;
+                }
+
+                PendingIntent contentIntent = PendingIntent.getActivity(
+                        context,
+                        (int) (item.getId() & 0x7FFFFFFF),
+                        intent,
+                        pendingIntentFlags
+                );
+
                 NotificationCompat.Builder builder =
                         new NotificationCompat.Builder(context, CHANNEL_ID)
                                 .setSmallIcon(
@@ -115,11 +150,18 @@ public class PantryExpiryWorker extends Worker {
                                 .setPriority(
                                         NotificationCompat.PRIORITY_DEFAULT
                                 )
+                                .setContentIntent(contentIntent)
                                 .setAutoCancel(true);
 
                 try {
+                    // Use a stable ID so the same ingredient's alert
+                    // updates rather than creating duplicates each run.
+                    int notificationId =
+                            (int) (item.getId() & 0x7FFFFFFF);
+
                     NotificationManagerCompat.from(context)
-                            .notify(notificationId++, builder.build());
+                            .notify(notificationId, builder.build());
+
                 } catch (SecurityException ignored) {
                     // Notifications may have been disabled by the user.
                 }

@@ -1,47 +1,223 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="#F5F7FA">
+    android:background="#F5F8F5"
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp"
+    android:paddingTop="20dp">
 
+    <!-- Brand label -->
     <TextView
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Suggested Recipes"
-        android:textSize="26sp"
+        android:text="SMART PANTRY"
+        android:textColor="#26734D"
+        android:textSize="12sp"
         android:textStyle="bold"
-        android:textColor="#172B4D"
-        android:paddingBottom="8dp" />
+        android:letterSpacing="0.12"
+        android:layout_marginTop="8dp" />
+
+    <!-- Main heading -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Discover recipes"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="#173D2D"
+        android:layout_marginTop="8dp" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Recipes you can make with your current pantry ingredients."
-        android:textSize="15sp"
-        android:textColor="#526174"
-        android:paddingBottom="16dp" />
+        android:text="Make something delicious with what you already have."
+        android:textSize="14sp"
+        android:textColor="#718078"
+        android:lineSpacingExtra="3dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="18dp" />
 
-    <TextView
-        android:id="@+id/textEmptyRecipes"
+    <!-- Strict matching information card -->
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="No recipes available yet. Add the required ingredients and quantities to your pantry, then check again."
-        android:textSize="16sp"
-        android:textColor="#526174"
-        android:gravity="center"
-        android:padding="24dp"
-        android:visibility="gone" />
+        android:layout_marginBottom="20dp"
+        app:cardBackgroundColor="#E7F1E9"
+        app:cardCornerRadius="18dp"
+        app:cardElevation="0dp"
+        app:strokeColor="#D4E5D7"
+        app:strokeWidth="1dp">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:background="#FFFFFF"
+                android:gravity="center"
+                android:text="✓"
+                android:textColor="#26734D"
+                android:textSize="23sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Made for your pantry"
+                    android:textColor="#205C3D"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Only recipes with all required ingredients and sufficient quantities are shown."
+                    android:textColor="#52685A"
+                    android:textSize="13sp"
+                    android:lineSpacingExtra="3dp"
+                    android:layout_marginTop="5dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Improved recipe section heading -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:background="#E1EFE4"
+            android:gravity="center"
+            android:text="✓"
+            android:textColor="#26734D"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="12dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Ready to cook"
+                android:textColor="#173D2D"
+                android:textSize="19sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Recipes that match your ingredients"
+                android:textColor="#718078"
+                android:textSize="12sp"
+                android:layout_marginTop="3dp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E1EAE2"
+        android:layout_marginBottom="10dp" />
+
+    <!-- Empty state card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/emptyRecipesCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:visibility="gone"
+        app:cardBackgroundColor="#FFFFFF"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="1dp"
+        app:strokeColor="#E4ECE5"
+        app:strokeWidth="1dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="24dp">
+
+            <TextView
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:background="#E7F1E9"
+                android:gravity="center"
+                android:text="!"
+                android:textColor="#26734D"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Nothing to cook just yet"
+                android:textColor="#173D2D"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_marginTop="14dp" />
+
+            <TextView
+                android:id="@+id/textEmptyRecipes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No recipes match your pantry right now. Add the missing ingredients or quantities and check again."
+                android:textSize="14sp"
+                android:textColor="#718078"
+                android:gravity="center"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginTop="8dp"
+                android:visibility="visible" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Existing recipe list -->
     <ListView
         android:id="@+id/listRecipes"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:divider="#DCE2EA"
-        android:dividerHeight="8dp"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="10dp"
         android:clipToPadding="false"
-        android:paddingBottom="8dp" />
+        android:paddingTop="2dp"
+        android:paddingBottom="12dp"
+        android:scrollbars="vertical" />
 
 </LinearLayout>

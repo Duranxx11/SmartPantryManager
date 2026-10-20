@@ -35,6 +35,9 @@ import java.util.Locale;
 
 public class PantryListActivity extends AppCompatActivity {
 
+    public static final String EXTRA_EXPIRY_ITEM_ID = "pantry_item_id";
+    public static final String EXTRA_EXPIRY_ITEM_NAME = "pantry_item_name";
+
     private DatabaseHelper db;
     private PantryAdapter adapter;
     private RecyclerView recyclerPantry;
@@ -43,9 +46,7 @@ public class PantryListActivity extends AppCompatActivity {
 
     private List<PantryItem> allPantryItems = new ArrayList<>();
 
-    // Request notification permission on Android 13 and newer.
-    private final ActivityResultLauncher<String>
-            notificationPermissionLauncher =
+    private final ActivityResultLauncher<String> notificationPermissionLauncher =
             registerForActivityResult(
                     new ActivityResultContracts.RequestPermission(),
                     isGranted -> {
@@ -71,21 +72,20 @@ public class PantryListActivity extends AppCompatActivity {
         View mainView = findViewById(R.id.main);
 
         if (mainView != null) {
-            ViewCompat.setOnApplyWindowInsetsListener(
-                    mainView, (v, insets) -> {
-                        Insets systemBars = insets.getInsets(
-                                WindowInsetsCompat.Type.systemBars()
-                        );
+            ViewCompat.setOnApplyWindowInsetsListener(mainView, (v, insets) -> {
+                Insets systemBars = insets.getInsets(
+                        WindowInsetsCompat.Type.systemBars()
+                );
 
-                        v.setPadding(
-                                systemBars.left,
-                                systemBars.top,
-                                systemBars.right,
-                                systemBars.bottom
-                        );
+                v.setPadding(
+                        systemBars.left,
+                        systemBars.top,
+                        systemBars.right,
+                        systemBars.bottom
+                );
 
-                        return insets;
-                    });
+                return insets;
+            });
         }
 
         db = DatabaseHelper.getInstance(this);
@@ -95,38 +95,48 @@ public class PantryListActivity extends AppCompatActivity {
         etSearchPantry = findViewById(R.id.etSearchPantry);
 
         FloatingActionButton fabAdd = findViewById(R.id.fabAdd);
-
-        // Suggested Recipes navigation.
         MaterialButton btnSuggestedRecipes =
                 findViewById(R.id.btnSuggestedRecipes);
-
-        btnSuggestedRecipes.setOnClickListener(v -> {
-            Intent intent = new Intent(
-                    PantryListActivity.this,
-                    SuggestedRecipesActivity.class
-            );
-            startActivity(intent);
-        });
-
-        // Settings navigation.
         MaterialButton btnSettings = findViewById(R.id.btnSettings);
 
-        btnSettings.setOnClickListener(v -> {
-            Intent intent = new Intent(
-                    PantryListActivity.this,
-                    SettingsActivity.class
-            );
-            startActivity(intent);
-        });
-
-        // Set up the pantry list adapter.
+        // Set up the pantry list.
         adapter = new PantryAdapter(this::showIngredientOptions);
         recyclerPantry.setAdapter(adapter);
 
-        // Schedule expiry checks and request notification permission if needed.
-        setupExpiryNotifications();
+        // Open the Suggested Recipes screen.
+        if (btnSuggestedRecipes != null) {
+            btnSuggestedRecipes.setOnClickListener(v -> {
+                Intent intent = new Intent(
+                        PantryListActivity.this,
+                        SuggestedRecipesActivity.class
+                );
+                startActivity(intent);
+            });
+        }
 
-        // Search ingredients as the user types.
+        // Open the Settings screen.
+        if (btnSettings != null) {
+            btnSettings.setOnClickListener(v -> {
+                Intent intent = new Intent(
+                        PantryListActivity.this,
+                        SettingsActivity.class
+                );
+                startActivity(intent);
+            });
+        }
+
+        // Open the Add Ingredient screen.
+        if (fabAdd != null) {
+            fabAdd.setOnClickListener(v -> {
+                Intent intent = new Intent(
+                        PantryListActivity.this,
+                        AddEditPantryActivity.class
+                );
+                startActivity(intent);
+            });
+        }
+
+        // Search pantry ingredients.
         etSearchPantry.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(
@@ -144,21 +154,12 @@ public class PantryListActivity extends AppCompatActivity {
             }
         });
 
-        // Open the form to add an ingredient.
-        fabAdd.setOnClickListener(v -> {
-            Intent intent = new Intent(
-                    PantryListActivity.this,
-                    AddEditPantryActivity.class
-            );
-            startActivity(intent);
-        });
+        setupExpiryNotifications();
     }
 
     private void setupExpiryNotifications() {
-        // Schedule the daily expiry check.
         ExpiryNotificationScheduler.schedule(this);
 
-        // Request permission only if it has not already been granted.
         if (Build.VERSION.SDK_INT >= 33
                 && ContextCompat.checkSelfPermission(
                 this,
@@ -168,6 +169,148 @@ public class PantryListActivity extends AppCompatActivity {
             notificationPermissionLauncher.launch(
                     Manifest.permission.POST_NOTIFICATIONS
             );
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (db != null && etSearchPantry != null) {
+            loadPantry();
+            handleExpiryNotificationIntent();
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+
+        loadPantry();
+        handleExpiryNotificationIntent();
+    }
+
+    // Open the exact ingredient when its expiry notification is tapped.
+    private void handleExpiryNotificationIntent() {
+        Intent intent = getIntent();
+
+        if (intent == null
+                || (!intent.hasExtra(EXTRA_EXPIRY_ITEM_ID)
+                && !intent.hasExtra(EXTRA_EXPIRY_ITEM_NAME))) {
+            return;
+        }
+
+        long targetId = intent.getLongExtra(EXTRA_EXPIRY_ITEM_ID, -1L);
+        String targetName = intent.getStringExtra(EXTRA_EXPIRY_ITEM_NAME);
+
+        PantryItem targetItem = null;
+
+        // Prefer the unique database ID.
+        if (targetId != -1L) {
+            for (PantryItem item : allPantryItems) {
+                if (item.getId() == targetId) {
+                    targetItem = item;
+                    break;
+                }
+            }
+        }
+
+        // Fall back to the ingredient name if needed.
+        if (targetItem == null && targetName != null) {
+            for (PantryItem item : allPantryItems) {
+                if (targetName.equalsIgnoreCase(item.getName())) {
+                    targetItem = item;
+                    break;
+                }
+            }
+        }
+
+        // Remove the extras so the same alert isn't handled repeatedly.
+        intent.removeExtra(EXTRA_EXPIRY_ITEM_ID);
+        intent.removeExtra(EXTRA_EXPIRY_ITEM_NAME);
+
+        if (targetItem == null) {
+            Toast.makeText(
+                    this,
+                    "This ingredient is no longer in your pantry.",
+                    Toast.LENGTH_LONG
+            ).show();
+            return;
+        }
+
+        final PantryItem selectedItem = targetItem;
+
+        // Filter the list to the ingredient from the notification.
+        etSearchPantry.setText(selectedItem.getName());
+
+        // Scroll to the matching ingredient.
+        recyclerPantry.post(() -> {
+            List<PantryItem> filteredItems = new ArrayList<>();
+
+            for (PantryItem item : allPantryItems) {
+                if (item.getName() != null
+                        && item.getName().equalsIgnoreCase(
+                        selectedItem.getName())) {
+                    filteredItems.add(item);
+                }
+            }
+
+            int position = -1;
+
+            for (int i = 0; i < filteredItems.size(); i++) {
+                if (filteredItems.get(i).getId() == selectedItem.getId()) {
+                    position = i;
+                    break;
+                }
+            }
+
+            if (position >= 0) {
+                recyclerPantry.scrollToPosition(position);
+            }
+
+            Toast.makeText(
+                    PantryListActivity.this,
+                    "Showing " + selectedItem.getName(),
+                    Toast.LENGTH_SHORT
+            ).show();
+        });
+    }
+
+    private void loadPantry() {
+        allPantryItems = db.getAllPantryItems();
+        filterPantry(etSearchPantry.getText().toString());
+    }
+
+    private void filterPantry(String searchText) {
+        List<PantryItem> filteredItems = new ArrayList<>();
+        String query = searchText.trim().toLowerCase(Locale.ROOT);
+
+        for (PantryItem item : allPantryItems) {
+            if (item.getName() != null
+                    && item.getName().toLowerCase(Locale.ROOT)
+                    .contains(query)) {
+                filteredItems.add(item);
+            }
+        }
+
+        adapter.setItems(filteredItems);
+
+        if (allPantryItems.isEmpty()) {
+            textEmpty.setText(
+                    "Your pantry is empty. Add an ingredient to get started."
+            );
+            textEmpty.setVisibility(View.VISIBLE);
+            recyclerPantry.setVisibility(View.GONE);
+
+        } else if (filteredItems.isEmpty()) {
+            textEmpty.setText("No matching ingredients found.");
+            textEmpty.setVisibility(View.VISIBLE);
+            recyclerPantry.setVisibility(View.GONE);
+
+        } else {
+            textEmpty.setVisibility(View.GONE);
+            recyclerPantry.setVisibility(View.VISIBLE);
         }
     }
 
@@ -224,7 +367,7 @@ public class PantryListActivity extends AppCompatActivity {
 
         if (rowsDeleted > 0) {
             Toast.makeText(
-                    PantryListActivity.this,
+                    this,
                     item.getName() + " deleted successfully!",
                     Toast.LENGTH_LONG
             ).show();
@@ -232,59 +375,10 @@ public class PantryListActivity extends AppCompatActivity {
             loadPantry();
         } else {
             Toast.makeText(
-                    PantryListActivity.this,
+                    this,
                     "Could not delete ingredient.",
                     Toast.LENGTH_LONG
             ).show();
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        if (db != null && etSearchPantry != null) {
-            loadPantry();
-        }
-    }
-
-    private void loadPantry() {
-        allPantryItems = db.getAllPantryItems();
-        filterPantry(etSearchPantry.getText().toString());
-    }
-
-    private void filterPantry(String searchText) {
-        List<PantryItem> filteredItems = new ArrayList<>();
-
-        String query = searchText.trim().toLowerCase(Locale.ROOT);
-
-        for (PantryItem item : allPantryItems) {
-            if (item.getName() != null
-                    && item.getName().toLowerCase(Locale.ROOT)
-                    .contains(query)) {
-                filteredItems.add(item);
-            }
-        }
-
-        adapter.setItems(filteredItems);
-
-        if (allPantryItems.isEmpty()) {
-            textEmpty.setText(
-                    "Your pantry is empty. Add an ingredient to get started."
-            );
-
-            textEmpty.setVisibility(View.VISIBLE);
-            recyclerPantry.setVisibility(View.GONE);
-
-        } else if (filteredItems.isEmpty()) {
-            textEmpty.setText("No matching ingredients found.");
-
-            textEmpty.setVisibility(View.VISIBLE);
-            recyclerPantry.setVisibility(View.GONE);
-
-        } else {
-            textEmpty.setVisibility(View.GONE);
-            recyclerPantry.setVisibility(View.VISIBLE);
         }
     }
 }

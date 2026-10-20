@@ -3,9 +3,10 @@ package com.durangoindsamy.smartpantrymanager;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.ArrayAdapter;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -19,11 +20,10 @@ import java.util.List;
 
 public class SuggestedRecipesActivity extends Activity {
 
-    private static final String TAG = "PantryDebug";
-
     private DatabaseHelper db;
     private ListView listRecipes;
     private TextView textEmpty;
+    private View emptyRecipesCard;
     private List<Recipe> suggestedRecipes;
 
     @Override
@@ -35,6 +35,7 @@ public class SuggestedRecipesActivity extends Activity {
 
         listRecipes = findViewById(R.id.listRecipes);
         textEmpty = findViewById(R.id.textEmptyRecipes);
+        emptyRecipesCard = findViewById(R.id.emptyRecipesCard);
 
         listRecipes.setOnItemClickListener((parent, view, position, id) -> {
             if (suggestedRecipes != null
@@ -68,52 +69,28 @@ public class SuggestedRecipesActivity extends Activity {
     private void loadSuggestedRecipes() {
         suggestedRecipes = db.getSuggestedRecipes();
 
-        List<Recipe> allRecipes = db.getAllRecipes();
-        List<?> pantryItems = db.getAllPantryItems();
-
-        Log.d(TAG, "Total recipes in database: " + allRecipes.size());
-        Log.d(TAG, "Pantry ingredients: " + pantryItems.size());
-        Log.d(TAG, "Matching suggested recipes: " + suggestedRecipes.size());
-
-        List<String> recipeNames = new ArrayList<>();
-
-        for (Recipe recipe : suggestedRecipes) {
-            StringBuilder details = new StringBuilder();
-
-            details.append(recipe.getName()).append("\n\n");
-
-            for (RecipeIngredient ingredient : recipe.getIngredients()) {
-                details.append("• ")
-                        .append(ingredient.getName())
-                        .append(" — ")
-                        .append(formatQuantity(ingredient.getQuantity()))
-                        .append(" ")
-                        .append(ingredient.getUnit())
-                        .append("\n");
-            }
-
-            recipeNames.add(details.toString().trim());
+        if (suggestedRecipes == null) {
+            suggestedRecipes = new ArrayList<>();
         }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_list_item_1,
-                recipeNames
-        );
+        RecipeCardAdapter adapter =
+                new RecipeCardAdapter(suggestedRecipes);
 
         listRecipes.setAdapter(adapter);
 
         if (suggestedRecipes.isEmpty()) {
             textEmpty.setText(
-                    "No matching recipes found.\n\n"
-                            + "Check that your pantry contains every "
-                            + "required ingredient in the required quantity."
+                    "No recipes match your pantry right now.\n\n"
+                            + "Make sure you have every required "
+                            + "ingredient in the correct quantity, "
+                            + "or add more items to your pantry."
             );
 
-            textEmpty.setVisibility(View.VISIBLE);
+            emptyRecipesCard.setVisibility(View.VISIBLE);
             listRecipes.setVisibility(View.GONE);
+
         } else {
-            textEmpty.setVisibility(View.GONE);
+            emptyRecipesCard.setVisibility(View.GONE);
             listRecipes.setVisibility(View.VISIBLE);
         }
     }
@@ -122,5 +99,105 @@ public class SuggestedRecipesActivity extends Activity {
         return BigDecimal.valueOf(quantity)
                 .stripTrailingZeros()
                 .toPlainString();
+    }
+
+    private class RecipeCardAdapter extends BaseAdapter {
+
+        private final List<Recipe> recipes;
+
+        RecipeCardAdapter(List<Recipe> recipes) {
+            this.recipes = recipes;
+        }
+
+        @Override
+        public int getCount() {
+            return recipes.size();
+        }
+
+        @Override
+        public Recipe getItem(int position) {
+            return recipes.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(
+                int position,
+                View convertView,
+                ViewGroup parent
+        ) {
+            View row = convertView;
+
+            if (row == null) {
+                row = LayoutInflater.from(
+                        SuggestedRecipesActivity.this
+                ).inflate(
+                        R.layout.item_suggested_recipe,
+                        parent,
+                        false
+                );
+            }
+
+            TextView recipeName =
+                    row.findViewById(R.id.recipeName);
+
+            TextView ingredientCount =
+                    row.findViewById(R.id.recipeIngredientCount);
+
+            TextView ingredientPreview =
+                    row.findViewById(R.id.recipeIngredientPreview);
+
+            Recipe recipe = getItem(position);
+
+            recipeName.setText(recipe.getName());
+
+            List<RecipeIngredient> ingredients =
+                    recipe.getIngredients();
+
+            int count = ingredients == null ? 0 : ingredients.size();
+
+            ingredientCount.setText(
+                    count + (count == 1
+                            ? " required ingredient"
+                            : " required ingredients")
+            );
+
+            StringBuilder preview = new StringBuilder();
+
+            if (ingredients != null) {
+                int previewLimit = Math.min(3, ingredients.size());
+
+                for (int i = 0; i < previewLimit; i++) {
+                    RecipeIngredient ingredient = ingredients.get(i);
+
+                    if (i > 0) {
+                        preview.append("  •  ");
+                    }
+
+                    preview.append(ingredient.getName())
+                            .append(" (")
+                            .append(formatQuantity(
+                                    ingredient.getQuantity()
+                            ))
+                            .append(" ")
+                            .append(ingredient.getUnit())
+                            .append(")");
+                }
+
+                if (ingredients.size() > previewLimit) {
+                    preview.append("  •  +")
+                            .append(ingredients.size() - previewLimit)
+                            .append(" more");
+                }
+            }
+
+            ingredientPreview.setText(preview.toString());
+
+            return row;
+        }
     }
 }

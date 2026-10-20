@@ -1,72 +1,252 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F7FA"
-    android:fillViewport="true">
+    android:background="#F5F8F5"
+    android:fillViewport="true"
+    android:clipToPadding="false">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="28dp">
 
+        <!-- Brand label -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SMART PANTRY"
+            android:textColor="#26734D"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.12" />
+
+        <!-- Page heading -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Recipe Details"
-            android:textColor="#526174"
-            android:textSize="15sp"
-            android:paddingBottom="8dp" />
-
-        <TextView
-            android:id="@+id/textRecipeName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Recipe Name"
-            android:textColor="#172B4D"
+            android:textColor="#173D2D"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:paddingBottom="20dp" />
+            android:layout_marginTop="8dp" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Required Ingredients"
-            android:textColor="#172B4D"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:paddingBottom="10dp" />
+            android:text="Everything you need to prepare your meal."
+            android:textColor="#718078"
+            android:textSize="14sp"
+            android:lineSpacingExtra="3dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="20dp" />
 
-        <TextView
-            android:id="@+id/textRecipeIngredients"
+        <!-- Recipe title card -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#FFFFFF"
-            android:padding="16dp"
-            android:textColor="#263548"
-            android:textSize="16sp"
-            android:lineSpacingExtra="6dp" />
+            app:cardBackgroundColor="#26734D"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="0dp">
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="22dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="YOUR SELECTED RECIPE"
+                    android:textColor="#D9EBDD"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.08" />
+
+                <TextView
+                    android:id="@+id/textRecipeName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Recipe Name"
+                    android:textColor="#FFFFFF"
+                    android:textSize="26sp"
+                    android:textStyle="bold"
+                    android:lineSpacingExtra="3dp"
+                    android:layout_marginTop="10dp" />
+
+                <View
+                    android:layout_width="44dp"
+                    android:layout_height="3dp"
+                    android:background="#B9DCC2"
+                    android:layout_marginTop="14dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Made with ingredients from your pantry"
+                    android:textColor="#E7F1E9"
+                    android:textSize="13sp"
+                    android:layout_marginTop="12dp" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Ingredients heading -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="26dp"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="#E1EFE4"
+                android:gravity="center"
+                android:text="✓"
+                android:textColor="#26734D"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Required Ingredients"
+                    android:textColor="#173D2D"
+                    android:textSize="19sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Check the quantities before you start"
+                    android:textColor="#718078"
+                    android:textSize="12sp"
+                    android:layout_marginTop="3dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Ingredients card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="1dp"
+            app:strokeColor="#E1EAE2"
+            app:strokeWidth="1dp">
+
+            <TextView
+                android:id="@+id/textRecipeIngredients"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="90dp"
+                android:padding="20dp"
+                android:text="Recipe ingredients will appear here."
+                android:textColor="#35483B"
+                android:textSize="15sp"
+                android:lineSpacingExtra="7dp" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Preparation heading -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="26dp"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="#E1EFE4"
+                android:gravity="center"
+                android:text="→"
+                android:textColor="#26734D"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Preparation Instructions"
+                    android:textColor="#173D2D"
+                    android:textSize="19sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Follow the steps to prepare your recipe"
+                    android:textColor="#718078"
+                    android:textSize="12sp"
+                    android:layout_marginTop="3dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Instructions card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="1dp"
+            app:strokeColor="#E1EAE2"
+            app:strokeWidth="1dp">
+
+            <TextView
+                android:id="@+id/textRecipeInstructions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="120dp"
+                android:padding="20dp"
+                android:text="Preparation instructions will appear here."
+                android:textColor="#35483B"
+                android:textSize="15sp"
+                android:lineSpacingExtra="8dp" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Bottom note -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Preparation Instructions"
-            android:textColor="#172B4D"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:paddingTop="24dp"
-            android:paddingBottom="10dp" />
-
-        <TextView
-            android:id="@+id/textRecipeInstructions"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#FFFFFF"
-            android:padding="16dp"
-            android:textColor="#263548"
-            android:textSize="16sp"
-            android:lineSpacingExtra="6dp" />
+            android:text="Smart Pantry Manager • Reduce food waste, one meal at a time."
+            android:textColor="#718078"
+            android:textSize="12sp"
+            android:gravity="center"
+            android:lineSpacingExtra="4dp"
+            android:layout_marginTop="24dp" />
 
     </LinearLayout>
 
