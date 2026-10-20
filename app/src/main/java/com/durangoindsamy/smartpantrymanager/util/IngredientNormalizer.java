@@ -3,7 +3,7 @@ package com.durangoindsamy.smartpantrymanager.util;
 import java.util.Locale;
 
 /**
- * Turns user-typed ingredient names into a consistent form for matching.
+ * Converts ingredient names into a consistent form for matching.
  */
 public final class IngredientNormalizer {
 
@@ -24,18 +24,21 @@ public final class IngredientNormalizer {
             return "";
         }
 
-        // Normalize the final word so names such as "red onions"
-        // can match "red onion".
+        // Normalize common plural forms.
         int lastSpace = normalized.lastIndexOf(' ');
+
         String prefix = lastSpace >= 0
                 ? normalized.substring(0, lastSpace + 1)
                 : "";
+
         String lastWord = lastSpace >= 0
                 ? normalized.substring(lastSpace + 1)
                 : normalized;
 
         if (lastWord.length() > 4 && lastWord.endsWith("ies")) {
-            lastWord = lastWord.substring(0, lastWord.length() - 3) + "y";
+            lastWord = lastWord.substring(
+                    0, lastWord.length() - 3) + "y";
+
         } else if (lastWord.length() > 4 &&
                 (lastWord.endsWith("ches")
                         || lastWord.endsWith("shes")
@@ -43,13 +46,18 @@ public final class IngredientNormalizer {
                         || lastWord.endsWith("zes")
                         || lastWord.endsWith("sses")
                         || lastWord.endsWith("oes"))) {
-            lastWord = lastWord.substring(0, lastWord.length() - 2);
+
+            lastWord = lastWord.substring(
+                    0, lastWord.length() - 2);
+
         } else if (lastWord.length() > 3
                 && lastWord.endsWith("s")
                 && !lastWord.endsWith("ss")
                 && !lastWord.endsWith("us")
                 && !lastWord.endsWith("is")) {
-            lastWord = lastWord.substring(0, lastWord.length() - 1);
+
+            lastWord = lastWord.substring(
+                    0, lastWord.length() - 1);
         }
 
         return prefix + lastWord;
