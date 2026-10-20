@@ -26,6 +26,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.durangoindsamy.smartpantrymanager.adapter.PantryAdapter;
 import com.durangoindsamy.smartpantrymanager.data.DatabaseHelper;
 import com.durangoindsamy.smartpantrymanager.model.PantryItem;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -95,6 +96,19 @@ public class PantryListActivity extends AppCompatActivity {
 
         FloatingActionButton fabAdd = findViewById(R.id.fabAdd);
 
+        // Suggested Recipes navigation button.
+        MaterialButton btnSuggestedRecipes =
+                findViewById(R.id.btnSuggestedRecipes);
+
+        btnSuggestedRecipes.setOnClickListener(v -> {
+            Intent intent = new Intent(
+                    PantryListActivity.this,
+                    SuggestedRecipesActivity.class
+            );
+
+            startActivity(intent);
+        });
+
         adapter = new PantryAdapter(this::showIngredientOptions);
         recyclerPantry.setAdapter(adapter);
 
@@ -125,6 +139,7 @@ public class PantryListActivity extends AppCompatActivity {
                     PantryListActivity.this,
                     AddEditPantryActivity.class
             );
+
             startActivity(intent);
         });
     }
@@ -244,11 +259,13 @@ public class PantryListActivity extends AppCompatActivity {
             textEmpty.setText(
                     "Your pantry is empty. Add an ingredient to get started."
             );
+
             textEmpty.setVisibility(View.VISIBLE);
             recyclerPantry.setVisibility(View.GONE);
 
         } else if (filteredItems.isEmpty()) {
             textEmpty.setText("No matching ingredients found.");
+
             textEmpty.setVisibility(View.VISIBLE);
             recyclerPantry.setVisibility(View.GONE);
 

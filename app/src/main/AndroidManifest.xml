@@ -15,10 +15,22 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartPantryManager">
 
+        <!-- Add and edit pantry ingredients -->
         <activity
             android:name=".AddEditPantryActivity"
             android:exported="false" />
 
+        <!-- Recipe detail screen -->
+        <activity
+            android:name=".RecipeDetailActivity"
+            android:exported="false" />
+
+        <!-- Suggested recipes screen -->
+        <activity
+            android:name=".SuggestedRecipesActivity"
+            android:exported="false" />
+
+        <!-- Main pantry screen -->
         <activity
             android:name=".PantryListActivity"
             android:exported="true">

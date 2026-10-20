@@ -17,7 +17,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Search bar -->
+    <!-- Search pantry ingredients -->
     <EditText
         android:id="@+id/etSearchPantry"
         android:layout_width="0dp"
@@ -36,6 +36,23 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Open suggested recipes -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSuggestedRecipes"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:text="Suggested Recipes"
+        android:contentDescription="View recipes you can make"
+        app:icon="@android:drawable/ic_menu_search"
+        app:iconGravity="textStart"
+        app:layout_constraintTop_toBottomOf="@id/etSearchPantry"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Pantry ingredient list -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerPantry"
         android:layout_width="0dp"
@@ -43,7 +60,7 @@
         android:padding="8dp"
         android:clipToPadding="false"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintTop_toBottomOf="@id/etSearchPantry"
+        app:layout_constraintTop_toBottomOf="@id/btnSuggestedRecipes"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -58,11 +75,12 @@
         android:text="@string/pantry_empty"
         android:textSize="16sp"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/etSearchPantry"
+        app:layout_constraintTop_toBottomOf="@id/btnSuggestedRecipes"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Add pantry ingredient -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAdd"
         android:layout_width="wrap_content"
