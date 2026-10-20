@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 
@@ -23,7 +24,8 @@ import java.util.concurrent.TimeUnit;
 
 public class PantryExpiryWorker extends Worker {
 
-    private static final String CHANNEL_ID = "pantry_expiry_channel";
+    private static final String CHANNEL_ID =
+            "pantry_expiry_channel";
 
     public PantryExpiryWorker(
             @NonNull Context context,
@@ -36,12 +38,28 @@ public class PantryExpiryWorker extends Worker {
     public Result doWork() {
         Context context = getApplicationContext();
 
+        // Read the saved expiry-alert setting.
+        SharedPreferences preferences = context.getSharedPreferences(
+                SettingsActivity.PREFS_NAME,
+                Context.MODE_PRIVATE
+        );
+
+        boolean alertsEnabled = preferences.getBoolean(
+                SettingsActivity.KEY_EXPIRY_ALERTS,
+                true
+        );
+
+        // Stop this check when expiry alerts are disabled.
+        if (!alertsEnabled) {
+            return Result.success();
+        }
+
+        // Check notification permission on Android 13 and newer.
         if (Build.VERSION.SDK_INT >= 33
                 && ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.POST_NOTIFICATIONS
         ) != PackageManager.PERMISSION_GRANTED) {
-            // Notifications are not permitted.
             return Result.success();
         }
 
@@ -103,7 +121,7 @@ public class PantryExpiryWorker extends Worker {
                     NotificationManagerCompat.from(context)
                             .notify(notificationId++, builder.build());
                 } catch (SecurityException ignored) {
-                    // Permission may have been revoked while running.
+                    // Notifications may have been disabled by the user.
                 }
             }
         }

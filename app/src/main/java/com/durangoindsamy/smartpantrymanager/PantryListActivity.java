@@ -96,7 +96,7 @@ public class PantryListActivity extends AppCompatActivity {
 
         FloatingActionButton fabAdd = findViewById(R.id.fabAdd);
 
-        // Suggested Recipes navigation button.
+        // Suggested Recipes navigation.
         MaterialButton btnSuggestedRecipes =
                 findViewById(R.id.btnSuggestedRecipes);
 
@@ -105,14 +105,25 @@ public class PantryListActivity extends AppCompatActivity {
                     PantryListActivity.this,
                     SuggestedRecipesActivity.class
             );
-
             startActivity(intent);
         });
 
+        // Settings navigation.
+        MaterialButton btnSettings = findViewById(R.id.btnSettings);
+
+        btnSettings.setOnClickListener(v -> {
+            Intent intent = new Intent(
+                    PantryListActivity.this,
+                    SettingsActivity.class
+            );
+            startActivity(intent);
+        });
+
+        // Set up the pantry list adapter.
         adapter = new PantryAdapter(this::showIngredientOptions);
         recyclerPantry.setAdapter(adapter);
 
-        // Schedule daily expiry checks and request permission if needed.
+        // Schedule expiry checks and request notification permission if needed.
         setupExpiryNotifications();
 
         // Search ingredients as the user types.
@@ -139,13 +150,12 @@ public class PantryListActivity extends AppCompatActivity {
                     PantryListActivity.this,
                     AddEditPantryActivity.class
             );
-
             startActivity(intent);
         });
     }
 
     private void setupExpiryNotifications() {
-        // Schedule the normal daily expiry check.
+        // Schedule the daily expiry check.
         ExpiryNotificationScheduler.schedule(this);
 
         // Request permission only if it has not already been granted.
@@ -232,7 +242,10 @@ public class PantryListActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadPantry();
+
+        if (db != null && etSearchPantry != null) {
+            loadPantry();
+        }
     }
 
     private void loadPantry() {
