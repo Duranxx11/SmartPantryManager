@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">SmartPantryManager</string>
+    <string name="title_pantry">My Pantry</string>
+    <string name="pantry_empty">Your pantry is empty.\nTap + to add your first ingredient.</string>
+    <string name="add_ingredient">Add ingredient</string>
+    <string name="quantity_format">%1$s %2$s</string>
+    <string name="expires_on">Expires: %1$s</string>
+    <string name="no_expiry">No expiry date</string>
 </resources>
