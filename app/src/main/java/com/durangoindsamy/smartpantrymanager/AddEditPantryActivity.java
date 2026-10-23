@@ -54,14 +54,8 @@ public class AddEditPantryActivity extends AppCompatActivity {
     }
 
     private void loadIngredientForEditing() {
-        PantryItem item = null;
-
-        for (PantryItem pantryItem : db.getAllPantryItems()) {
-            if (pantryItem.getId() == itemId) {
-                item = pantryItem;
-                break;
-            }
-        }
+        // Load only the row being edited, using its database id.
+        PantryItem item = db.getPantryItem(itemId);
 
         if (item == null) {
             Toast.makeText(

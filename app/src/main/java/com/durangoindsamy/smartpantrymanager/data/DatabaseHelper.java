@@ -279,14 +279,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // ===================== STRICT RECIPE MATCHING =====================
 
+    /**
+     * Returns only the recipes the user can make right now: every required
+     * ingredient must be in the pantry in at least the required quantity.
+     */
     public List<Recipe> getSuggestedRecipes() {
-        List<Recipe> pantryItems = new ArrayList<>();
         List<Recipe> matchingRecipes = new ArrayList<>();
 
-        List<PantryItem> actualPantryItems = getAllPantryItems();
+        // Load the pantry once and reuse it for every recipe.
+        List<PantryItem> pantryItems = getAllPantryItems();
 
         for (Recipe recipe : getAllRecipes()) {
-            if (canMakeRecipe(recipe, actualPantryItems)) {
+            if (canMakeRecipe(recipe, pantryItems)) {
                 matchingRecipes.add(recipe);
             }
         }
