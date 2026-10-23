@@ -10,10 +10,17 @@ import androidx.work.WorkManager;
 
 import java.util.concurrent.TimeUnit;
 
+/** Schedules (or cancels) the once-a-day expiry check with WorkManager. */
 public class ExpiryNotificationScheduler {
 
     private static final String WORK_NAME =
             "pantry_expiry_daily_check";
+
+    /** Stops the daily expiry check, e.g. when alerts are turned off. */
+    public static void cancel(Context context) {
+        WorkManager.getInstance(context.getApplicationContext())
+                .cancelUniqueWork(WORK_NAME);
+    }
 
     public static void schedule(Context context) {
         Constraints constraints = new Constraints.Builder()

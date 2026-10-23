@@ -1,19 +1,19 @@
 package com.durangoindsamy.smartpantrymanager;
 
-import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.Gravity;
-import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.Switch;
-import android.widget.TextView;
-import android.graphics.Color;
 import android.widget.Toast;
 
-import androidx.work.WorkManager;
+import androidx.appcompat.app.AppCompatActivity;
 
-public class SettingsActivity extends Activity {
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.materialswitch.MaterialSwitch;
+
+/**
+ * Settings screen. Lets the user turn the daily expiry alerts on or off.
+ * The choice is saved in SharedPreferences so it survives app restarts.
+ */
+public class SettingsActivity extends AppCompatActivity {
 
     public static final String PREFS_NAME = "pantry_settings";
     public static final String KEY_EXPIRY_ALERTS = "expiry_alerts_enabled";
@@ -23,91 +23,44 @@ public class SettingsActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_settings);
 
-        preferences = getSharedPreferences(
-                PREFS_NAME,
-                MODE_PRIVATE
+        preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+
+        MaterialSwitch switchExpiryAlerts =
+                findViewById(R.id.switchExpiryAlerts);
+        MaterialButton btnBack = findViewById(R.id.btnSettingsBack);
+
+        // Show the saved preference. Alerts are on by default.
+        switchExpiryAlerts.setChecked(
+                preferences.getBoolean(KEY_EXPIRY_ALERTS, true)
         );
-
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(32, 32, 32, 32);
-        layout.setBackgroundColor(Color.WHITE);
-
-        TextView title = new TextView(this);
-        title.setText("Settings");
-        title.setTextSize(26);
-        title.setTextColor(Color.BLACK);
-        title.setGravity(Gravity.CENTER);
-        title.setPadding(0, 0, 0, 32);
-        layout.addView(title);
-
-        TextView description = new TextView(this);
-        description.setText(
-                "Manage your Smart Pantry Manager preferences."
-        );
-        description.setTextSize(16);
-        description.setTextColor(Color.DKGRAY);
-        description.setPadding(0, 0, 0, 24);
-        layout.addView(description);
-
-        Switch expirySwitch = new Switch(this);
-        expirySwitch.setText("Expiry alerts enabled");
-        expirySwitch.setTextSize(16);
-
-        // Load the saved preference. Default is enabled.
-        boolean alertsEnabled = preferences.getBoolean(
-                KEY_EXPIRY_ALERTS,
-                true
-        );
-
-        expirySwitch.setChecked(alertsEnabled);
-        layout.addView(expirySwitch);
-
-        TextView note = new TextView(this);
-        note.setText(
-                "Receive reminders about ingredients that have expired " +
-                        "or are expiring soon."
-        );
-        note.setTextSize(14);
-        note.setTextColor(Color.DKGRAY);
-        note.setPadding(0, 16, 0, 32);
-        layout.addView(note);
 
         // Save the user's choice and update the daily schedule.
-        expirySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+        switchExpiryAlerts.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> onExpiryAlertsChanged(isChecked)
+        );
 
-            preferences.edit()
-                    .putBoolean(KEY_EXPIRY_ALERTS, isChecked)
-                    .apply();
+        btnBack.setOnClickListener(v -> finish());
+    }
 
-            if (isChecked) {
-                ExpiryNotificationScheduler.schedule(this);
+    private void onExpiryAlertsChanged(boolean enabled) {
+        preferences.edit()
+                .putBoolean(KEY_EXPIRY_ALERTS, enabled)
+                .apply();
 
-                Toast.makeText(
-                        this,
-                        "Expiry alert schedule enabled",
-                        Toast.LENGTH_SHORT
-                ).show();
+        if (enabled) {
+            ExpiryNotificationScheduler.schedule(this);
+        } else {
+            ExpiryNotificationScheduler.cancel(this);
+        }
 
-            } else {
-                WorkManager.getInstance(this).cancelUniqueWork(
-                        "pantry_expiry_daily_check"
-                );
-
-                Toast.makeText(
-                        this,
-                        "Expiry alert schedule disabled",
-                        Toast.LENGTH_SHORT
-                ).show();
-            }
-        });
-
-        Button backButton = new Button(this);
-        backButton.setText("Back");
-        backButton.setOnClickListener(v -> finish());
-        layout.addView(backButton);
-
-        setContentView(layout);
+        Toast.makeText(
+                this,
+                enabled
+                        ? R.string.settings_alerts_enabled
+                        : R.string.settings_alerts_disabled,
+                Toast.LENGTH_SHORT
+        ).show();
     }
 }
