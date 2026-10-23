@@ -16,4 +16,21 @@
     <string name="title_pantry">My Pantry</string>
     <string name="pantry_empty">Your pantry is empty. Add an ingredient to get started.</string>
     <string name="add_ingredient">Add Ingredient</string>
+
+    <!-- Toolbar menu -->
+    <string name="menu_settings">Settings</string>
+
+    <!-- Bottom navigation bar -->
+    <string name="nav_pantry">Pantry</string>
+    <string name="nav_recipes">Recipes</string>
+
+    <!-- Settings screen -->
+    <string name="settings_label">SMART PANTRY</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_subtitle">Manage your Smart Pantry Manager preferences.</string>
+    <string name="settings_expiry_alerts">Expiry alerts</string>
+    <string name="settings_expiry_alerts_summary">Receive reminders about ingredients that have expired or expire within 3 days.</string>
+    <string name="settings_back">Back</string>
+    <string name="settings_alerts_enabled">Expiry alert schedule enabled</string>
+    <string name="settings_alerts_disabled">Expiry alert schedule disabled</string>
 </resources>

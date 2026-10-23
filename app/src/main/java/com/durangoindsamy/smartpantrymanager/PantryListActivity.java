@@ -7,12 +7,15 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
@@ -26,7 +29,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.durangoindsamy.smartpantrymanager.adapter.PantryAdapter;
 import com.durangoindsamy.smartpantrymanager.data.DatabaseHelper;
 import com.durangoindsamy.smartpantrymanager.model.PantryItem;
-import com.google.android.material.button.MaterialButton;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -43,6 +47,7 @@ public class PantryListActivity extends AppCompatActivity {
     private RecyclerView recyclerPantry;
     private TextView textEmpty;
     private EditText etSearchPantry;
+    private BottomNavigationView bottomNav;
 
     private List<PantryItem> allPantryItems = new ArrayList<>();
 
@@ -77,16 +82,23 @@ public class PantryListActivity extends AppCompatActivity {
                         WindowInsetsCompat.Type.systemBars()
                 );
 
+                // No bottom padding here: the bottom navigation bar
+                // adds its own space above the phone's navigation bar.
                 v.setPadding(
                         systemBars.left,
                         systemBars.top,
                         systemBars.right,
-                        systemBars.bottom
+                        0
                 );
 
                 return insets;
             });
         }
+
+        // Use the green toolbar as the app bar so it can show the menu.
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        setTitle(R.string.title_pantry);
 
         db = DatabaseHelper.getInstance(this);
 
@@ -95,35 +107,21 @@ public class PantryListActivity extends AppCompatActivity {
         etSearchPantry = findViewById(R.id.etSearchPantry);
 
         FloatingActionButton fabAdd = findViewById(R.id.fabAdd);
-        MaterialButton btnSuggestedRecipes =
-                findViewById(R.id.btnSuggestedRecipes);
-        MaterialButton btnSettings = findViewById(R.id.btnSettings);
 
         // Set up the pantry list.
         adapter = new PantryAdapter(this::showIngredientOptions);
         recyclerPantry.setAdapter(adapter);
 
-        // Open the Suggested Recipes screen.
-        if (btnSuggestedRecipes != null) {
-            btnSuggestedRecipes.setOnClickListener(v -> {
-                Intent intent = new Intent(
-                        PantryListActivity.this,
-                        SuggestedRecipesActivity.class
-                );
-                startActivity(intent);
-            });
-        }
-
-        // Open the Settings screen.
-        if (btnSettings != null) {
-            btnSettings.setOnClickListener(v -> {
-                Intent intent = new Intent(
-                        PantryListActivity.this,
-                        SettingsActivity.class
-                );
-                startActivity(intent);
-            });
-        }
+        // Bottom bar: Pantry (this screen) | Recipes.
+        bottomNav = findViewById(R.id.bottomNav);
+        bottomNav.setSelectedItemId(R.id.nav_pantry);
+        bottomNav.setOnItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.nav_recipes) {
+                openSuggestedRecipes();
+                return true;
+            }
+            return item.getItemId() == R.id.nav_pantry;
+        });
 
         // Open the Add Ingredient screen.
         if (fabAdd != null) {
@@ -157,6 +155,35 @@ public class PantryListActivity extends AppCompatActivity {
         setupExpiryNotifications();
     }
 
+    // ===================== TOOLBAR MENU (Settings) =====================
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_pantry, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.action_settings) {
+            openSettings();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    // Explicit Intent to the Suggested Recipes screen (bottom bar).
+    private void openSuggestedRecipes() {
+        startActivity(new Intent(this, SuggestedRecipesActivity.class));
+        overridePendingTransition(0, 0); // switch tabs without animation
+    }
+
+    // Explicit Intent to the Settings screen.
+    private void openSettings() {
+        startActivity(new Intent(this, SettingsActivity.class));
+    }
+
     private void setupExpiryNotifications() {
         ExpiryNotificationScheduler.schedule(this);
 
@@ -175,6 +202,11 @@ public class PantryListActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        // Coming back from Recipes: highlight the Pantry tab again.
+        if (bottomNav != null) {
+            bottomNav.getMenu().findItem(R.id.nav_pantry).setChecked(true);
+        }
 
         if (db != null && etSearchPantry != null) {
             loadPantry();
