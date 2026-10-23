@@ -1,6 +1,5 @@
 package com.durangoindsamy.smartpantrymanager;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,15 +9,18 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.durangoindsamy.smartpantrymanager.data.DatabaseHelper;
 import com.durangoindsamy.smartpantrymanager.model.Recipe;
 import com.durangoindsamy.smartpantrymanager.model.RecipeIngredient;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SuggestedRecipesActivity extends Activity {
+public class SuggestedRecipesActivity extends AppCompatActivity {
 
     private DatabaseHelper db;
     private ListView listRecipes;
@@ -52,6 +54,20 @@ public class SuggestedRecipesActivity extends Activity {
                 intent.putExtra("recipe_id", recipe.getId());
                 startActivity(intent);
             }
+        });
+
+        // Bottom bar: Pantry | Recipes (this screen).
+        BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
+        bottomNav.setSelectedItemId(R.id.nav_recipes);
+        bottomNav.setOnItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.nav_pantry) {
+                // The Pantry List is underneath this screen, so close
+                // this one to go back to it.
+                finish();
+                overridePendingTransition(0, 0);
+                return true;
+            }
+            return item.getItemId() == R.id.nav_recipes;
         });
 
         loadSuggestedRecipes();
